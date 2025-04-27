@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
@@ -15,12 +15,6 @@ import {
 } from "@/components/svg-animations"
 
 export default function LessonsPage() {
-  const [isLoaded, setIsLoaded] = useState(false)
-
-  useEffect(() => {
-    setIsLoaded(true)
-  }, [])
-
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -136,8 +130,8 @@ export default function LessonsPage() {
 
         <motion.div
           variants={container}
-          initial="hidden"
-          animate={isLoaded ? "show" : "hidden"}
+          initial={false} // Add this
+          animate="show"  // Remove the conditional
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
           {topics.map((topic) => (
