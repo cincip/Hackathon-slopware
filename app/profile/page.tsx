@@ -1,9 +1,40 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react" // Added useMemo
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+
+// Import charting components
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+} from 'recharts';
+
+// Import Activity Calendar component
+import ActivityCalendar from 'react-activity-calendar';
+import dayjs from 'dayjs'; // Peer dependency for react-activity-calendar
+
+
+// Function to generate dummy activity data for the calendar
+const generateDummyActivityData = (days: number) => {
+  const data = [];
+  const today = dayjs();
+
+  for (let i = 0; i < days; i++) {
+    const date = today.subtract(i, 'day').format('YYYY-MM-DD');
+    // Generate random activity count (e.g., 0 to 10)
+    const count = Math.floor(Math.random() * 11);
+    data.unshift({ date, count }); // Add to the beginning to keep dates in order
+  }
+  return data;
+};
+
 
 export default function ProfilePage() {
   const [userName, setUserName] = useState("Alex")
@@ -14,11 +45,10 @@ export default function ProfilePage() {
   const [flashcardsReviewed, setFlashcardsReviewed] = useState(0)
   const [quizzesPassed, setQuizzesPassed] = useState(0)
 
-  // Weekly Stats
+  // Weekly Stats (used for the bar chart)
   const [weeklyLessonsCompleted, setWeeklyLessonsCompleted] = useState(0)
   const [weeklyFlashcardsReviewed, setWeeklyFlashcardsReviewed] = useState(0)
   const [weeklyQuizzesPassed, setWeeklyQuizzesPassed] = useState(0)
-
 
   const [isLoaded, setIsLoaded] = useState(false)
 
@@ -31,87 +61,63 @@ export default function ProfilePage() {
     const totalFlashcardsTarget = 87
     const totalQuizzesTarget = 6
 
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev < totalProgressTarget) return prev + 1
-        clearInterval(progressInterval)
-        return prev
-      })
-    }, 30) // Adjust speed as needed
+    // Create a controller to stop intervals
+    const intervalControllers: NodeJS.Timeout[] = [];
 
-    const lessonsInterval = setInterval(() => {
-      setLessonsCompleted((prev) => {
-        if (prev < totalLessonsTarget) return prev + 1
-        clearInterval(lessonsInterval)
-        return prev
-      })
-    }, 100) // Adjust speed as needed
+    const animateCounter = (setter: React.Dispatch<React.SetStateAction<number>>, target: number, speed: number) => {
+      const interval = setInterval(() => {
+        setter((prev) => {
+          if (prev < target) {
+            return prev + 1;
+          } else {
+            clearInterval(interval);
+            return prev;
+          }
+        });
+      }, speed);
+      intervalControllers.push(interval); // Store interval ID
+    };
 
-    const flashcardsInterval = setInterval(() => {
-      setFlashcardsReviewed((prev) => {
-        if (prev < totalFlashcardsTarget) return prev + 1
-        clearInterval(flashcardsInterval)
-        return prev
-      })
-    }, 20) // Adjust speed as needed
 
-    const quizzesInterval = setInterval(() => {
-      setQuizzesPassed((prev) => {
-        if (prev < totalQuizzesTarget) return prev + 1
-        clearInterval(quizzesInterval)
-        return prev
-      })
-    }, 200) // Adjust speed as needed
+    animateCounter(setProgress, totalProgressTarget, 30);
+    animateCounter(setLessonsCompleted, totalLessonsTarget, 100);
+    animateCounter(setFlashcardsReviewed, totalFlashcardsTarget, 20);
+    animateCounter(setQuizzesPassed, totalQuizzesTarget, 200);
 
     // --- Animate Weekly Counters ---
     const weeklyLessonsTarget = 3 // Example target
     const weeklyFlashcardsTarget = 25 // Example target
     const weeklyQuizzesTarget = 2 // Example target
 
-    const weeklyLessonsInterval = setInterval(() => {
-      setWeeklyLessonsCompleted((prev) => {
-        if (prev < weeklyLessonsTarget) return prev + 1
-        clearInterval(weeklyLessonsInterval)
-        return prev
-      })
-    }, 150) // Adjust speed as needed
-
-    const weeklyFlashcardsInterval = setInterval(() => {
-      setWeeklyFlashcardsReviewed((prev) => {
-        if (prev < weeklyFlashcardsTarget) return prev + 1
-        clearInterval(weeklyFlashcardsInterval)
-        return prev
-      })
-    }, 40) // Adjust speed as needed
-
-    const weeklyQuizzesInterval = setInterval(() => {
-      setWeeklyQuizzesPassed((prev) => {
-        if (prev < weeklyQuizzesTarget) return prev + 1
-        clearInterval(weeklyQuizzesInterval)
-        return prev
-      })
-    }, 300) // Adjust speed as needed
+    animateCounter(setWeeklyLessonsCompleted, weeklyLessonsTarget, 150);
+    animateCounter(setWeeklyFlashcardsReviewed, weeklyFlashcardsTarget, 40);
+    animateCounter(setWeeklyQuizzesPassed, weeklyQuizzesTarget, 300);
 
 
     return () => {
       // Cleanup all intervals
-      clearInterval(progressInterval)
-      clearInterval(lessonsInterval)
-      clearInterval(flashcardsInterval)
-      clearInterval(quizzesInterval)
-      clearInterval(weeklyLessonsInterval)
-      clearInterval(weeklyFlashcardsInterval)
-      clearInterval(weeklyQuizzesInterval)
+      intervalControllers.forEach(clearInterval);
     }
-  }, [])
+  }, []) // Empty dependency array means this runs once on mount
 
-  // Framer Motion variants for staggering
+  // Data for the weekly stats bar chart, updates when state changes
+  const weeklyChartData = useMemo(() => [
+    { name: 'Lessons', value: weeklyLessonsCompleted },
+    { name: 'Flashcards', value: weeklyFlashcardsReviewed },
+    { name: 'Quizzes', value: weeklyQuizzesPassed },
+  ], [weeklyLessonsCompleted, weeklyFlashcardsReviewed, weeklyQuizzesPassed]);
+
+  // Dummy data for the activity calendar (generate 365 days)
+  const activityData = useMemo(() => generateDummyActivityData(365), []);
+
+
+  // Framer Motion variants for staggering sections and items
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1, // Stagger delay between child items (the columns)
+        staggerChildren: 0.1, // Stagger delay between child items (the columns and calendar)
         delayChildren: 0.2 // Delay before children start animating
       },
     },
@@ -122,7 +128,7 @@ export default function ProfilePage() {
     show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   }
 
-  // Variants for cards *within* the columns (optional, could just inherit from parent)
+  // Variants for cards *within* the columns
   const cardItemVariants = {
      hidden: { opacity: 0, y: 10 },
      show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
@@ -144,14 +150,15 @@ export default function ProfilePage() {
 
       {/* Stats Section: Two Columns */}
       <motion.div
-        variants={containerVariants} // Apply container variants to the main grid
+        variants={containerVariants} // Apply container variants to the main layout area
         initial="hidden"
         animate={isLoaded ? "show" : "hidden"}
-        className="grid grid-cols-1 md:grid-cols-2 gap-8" // Main grid with two columns on medium screens+
+        className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12" // Main grid with two columns on medium screens+, added mb for space below
       >
         {/* Left Column: Total Stats */}
-        <motion.div variants={itemVariants} className="grid gap-6"> {/* This column is an item, contains its own grid */}
-           <motion.div variants={cardItemVariants}> {/* Overall progress card */}
+        <motion.div variants={itemVariants} className="grid gap-6 auto-rows-fr"> {/* This column is an item, contains its own grid, auto-rows-fr makes cards fill height */}
+           {/* Overall progress card - spans the single column */}
+           <motion.div variants={cardItemVariants}>
             <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-white">
               <CardHeader className="pb-2">
                 <CardTitle>Overall Progress</CardTitle>
@@ -167,11 +174,11 @@ export default function ProfilePage() {
             </Card>
           </motion.div>
 
-          {/* Stack remaining total stat cards */}
+          {/* Remaining total stat cards - stacked */}
           <motion.div variants={cardItemVariants}>
             <Card className="border-0 shadow-sm bg-gradient-to-br from-green-50 to-white h-full">
               <CardHeader className="pb-2">
-                <CardTitle>Lessons Completed (Total)</CardTitle> {/* Added (Total) for clarity */}
+                <CardTitle>Lessons Completed (Total)</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-5xl font-bold text-green-600 mb-2">{lessonsCompleted}</div>
@@ -183,7 +190,7 @@ export default function ProfilePage() {
           <motion.div variants={cardItemVariants}>
             <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-white h-full">
               <CardHeader className="pb-2">
-                <CardTitle>Flashcards Reviewed (Total)</CardTitle> {/* Added (Total) for clarity */}
+                <CardTitle>Flashcards Reviewed (Total)</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-5xl font-bold text-purple-600 mb-2">{flashcardsReviewed}</div>
@@ -195,7 +202,7 @@ export default function ProfilePage() {
           <motion.div variants={cardItemVariants}>
             <Card className="border-0 shadow-sm bg-gradient-to-br from-orange-50 to-white h-full">
               <CardHeader className="pb-2">
-                <CardTitle>Quizzes Passed (Total)</CardTitle> {/* Added (Total) for clarity */}
+                <CardTitle>Quizzes Passed (Total)</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-5xl font-bold text-orange-600 mb-2">{quizzesPassed}</div>
@@ -218,61 +225,81 @@ export default function ProfilePage() {
 
         </motion.div> {/* End Left Column */}
 
-        {/* Right Column: Weekly Stats */}
-        <motion.div variants={itemVariants} className="grid gap-6"> {/* This column is an item, contains its own grid */}
-          {/* Add Weekly Stats Cards */}
-          <motion.div variants={cardItemVariants}>
-            <Card className="border-0 shadow-sm bg-gradient-to-br from-green-50 to-white h-full"> {/* Using similar color but distinct title */}
+        {/* Right Column: Weekly Stats Bar Chart */}
+        <motion.div variants={itemVariants}> {/* This column is an item */}
+           <motion.div variants={cardItemVariants} className="h-full"> {/* Card for the chart, h-full to match height */}
+            <Card className="border-0 shadow-sm bg-gradient-to-br from-yellow-50 to-white h-full"> {/* Different gradient for weekly? */}
               <CardHeader className="pb-2">
-                <CardTitle>Lessons Completed (Weekly)</CardTitle>
+                <CardTitle>Weekly Progress Overview</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-5xl font-bold text-green-600 mb-2">{weeklyLessonsCompleted}</div>
-                 <p className="text-muted-foreground">this week</p> {/* Example text */}
+              <CardContent className="h-full flex flex-col"> {/* flex-col to make chart fill space */}
+                 <div className="flex-grow"> {/* Allows chart to take available space */}
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={weeklyChartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" /> {/* Grid lines */}
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} padding={{ left: 10, right: 10 }} className="text-sm text-muted-foreground" />
+                      <YAxis axisLine={false} tickLine={false} width={20} className="text-sm text-muted-foreground" /> {/* Y-axis */}
+                      <Tooltip
+                         cursor={{ fill: 'hsl(var(--muted))', opacity: 0.5 }} // Highlight bar on hover
+                         contentStyle={{
+                           backgroundColor: 'hsl(var(--card))',
+                           border: '1px solid hsl(var(--border))',
+                           borderRadius: '0.5rem',
+                           fontSize: '0.875rem'
+                         }}
+                         labelStyle={{ color: 'hsl(var(--foreground))' }}
+                         itemStyle={{ color: 'hsl(var(--foreground))' }}
+                      />
+                      <Bar
+                        dataKey="value"
+                        fill="hsl(var(--primary))" // Use primary color from theme
+                        radius={[4, 4, 0, 0]} // Rounded corners on top
+                        maxBarSize={50} // Max width of bars
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                 </div>
+                <p className="text-center text-muted-foreground text-sm mt-2">Activities completed this week.</p> {/* Added descriptive text */}
               </CardContent>
             </Card>
-          </motion.div>
-
-          <motion.div variants={cardItemVariants}>
-            <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-white h-full"> {/* Using similar color */}
-              <CardHeader className="pb-2">
-                <CardTitle>Flashcards Reviewed (Weekly)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-5xl font-bold text-purple-600 mb-2">{weeklyFlashcardsReviewed}</div>
-                 <p className="text-muted-foreground">this week</p> {/* Example text */}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div variants={cardItemVariants}>
-            <Card className="border-0 shadow-sm bg-gradient-to-br from-orange-50 to-white h-full"> {/* Using similar color */}
-              <CardHeader className="pb-2">
-                <CardTitle>Quizzes Passed (Weekly)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-5xl font-bold text-orange-600 mb-2">{weeklyQuizzesPassed}</div>
-                 <p className="text-muted-foreground">this week</p> {/* Example text */}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-           {/* You can add more weekly stats cards here if needed */}
-
+           </motion.div>
         </motion.div> {/* End Right Column */}
 
       </motion.div> {/* End Stats Section Grid */}
 
-      {/* Space for Activity Calendar */}
+      {/* Activity Calendar Section */}
+      {/* This section is also an item in the main container stagger */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={isLoaded ? { opacity: 1, y: 0 } : {}} // Animate in once page is loaded
-        transition={{ duration: 0.5, delay: 0.6 }} // Add a slight delay after stats
-        className="mt-12 p-6 border border-dashed rounded-lg text-center text-muted-foreground" // Added margin top
+         variants={itemVariants}
+         initial="hidden"
+         animate={isLoaded ? "show" : "hidden"}
+         className="mt-8" // Adjusted margin top, spacing is handled by main grid mb
       >
-        <h2 className="text-2xl font-semibold mb-4 text-foreground">Activity Calendar</h2>
-        <p>Placeholder for your learning activity calendar (like a GitHub contribution graph).</p>
-        <p>Content will be added here later.</p>
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-gray-50 to-white">
+           <CardHeader>
+            <CardTitle>Your Learning Activity</CardTitle>
+           </CardHeader>
+           <CardContent>
+             <div className="overflow-x-auto pb-2"> {/* Add overflow for smaller screens */}
+               <ActivityCalendar
+                 data={activityData}
+                 theme={{ // Basic theme override to fit Shadcn colors if possible, or just use a default
+                    light: ['#f0f0f0', '#c4edde', '#7ac7a9', '#5bba8d', '#2e845a'], // Example greens
+                    dark: ['#3a3a3a', '#5b8d5e', '#83b486', '#a8daac', '#d0ffc7'], // Example greens for dark mode
+                 }}
+                 hideColorLegend // You can show this if you want
+                 hideMonthLabels={false} // Show month labels
+                 hideTotalCount={false} // Show total count
+                 // You can customize block size, spacing, etc.
+                 blockSize={12}
+                 blockMargin={4}
+                 fontSize={12}
+                 // showWeekdayLabels={true} // Uncomment if you want weekday labels
+               />
+             </div>
+             <p className="text-center text-muted-foreground text-sm mt-4">Daily activity over the last year.</p>
+           </CardContent>
+        </Card>
       </motion.div>
     </div>
   )
