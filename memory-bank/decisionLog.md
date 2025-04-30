@@ -131,3 +131,5 @@ erDiagram
 *   `user_progress` uses polymorphic association.
 *   `quiz_attempt_answers.is_correct` is denormalized.
 *   Requires RLS policies and indexes on FKs.
+
+[2025-04-30 08:26:43] - Refactored Supabase server client creation (`lib/supabase/server.ts`) to accept `cookieStore` as an argument instead of importing `cookies` directly. Updated call sites (`app/page.tsx`, `app/auth/callback/route.ts`, `app/profile/page.tsx`) to pass the `cookieStore` obtained from `next/headers`.
