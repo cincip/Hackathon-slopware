@@ -5,11 +5,11 @@ import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { QuantumTunnelingAnimation } from "@/components/svg-animations/quantum-tunneling"; // Import the new tunneling animation
+import { QuantumTunnelingAnimation } from "@/components/svg-animations/quantum-tunneling";
 
-import topics from '../../../lib/topic-data.json'; // Import local topic data
+import topics from '../../../lib/topic-data.json';
 
-// Define type for topic data (can be moved to a shared types file later)
+
 type TopicData = {
   slug: string;
   name: string;
@@ -17,15 +17,13 @@ type TopicData = {
 } | null;
 
 export default function QuantumPhysicsPage() {
-  // const canvasRef = useRef<HTMLCanvasElement | null>(null); // Removed canvas ref
   const [isLoaded, setIsLoaded] = useState(false);
   const [topicData, setTopicData] = useState<TopicData>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const topicSlug = 'quantum-physics'; // Define the slug for this page
+  const topicSlug = 'quantum-physics';
 
   useEffect(() => {
-    // Load data from imported JSON
     setLoading(true);
     setError(null);
     const foundTopic = topics.find(topic => topic.slug === topicSlug);
@@ -39,9 +37,9 @@ export default function QuantumPhysicsPage() {
     setLoading(false);
     setIsLoaded(true);
 
-    // Removed canvas animation logic
-    return () => {}; // Simple cleanup
-  }, []); // Keep empty dependency array for animation setup on mount
+    return () => {};
+  }, []);
+
 
   const container = {
     hidden: { opacity: 0 },
@@ -53,12 +51,13 @@ export default function QuantumPhysicsPage() {
     },
   }
 
+
   const item = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   }
 
-  // --- Loading State ---
+
   if (loading) {
     return (
       <div className="container max-w-4xl mx-auto px-4 py-8 text-center">
@@ -67,14 +66,14 @@ export default function QuantumPhysicsPage() {
     );
   }
 
-  // --- Error State ---
-  if (error || !topicData) { // Handle both fetch error and topic not found
+
+  if (error || !topicData) {
     return (
-      <div className="container max-w-4xl mx-auto px-4 py-8 text-center text-red-600"> {/* Use red for error */}
+      <div className="container max-w-4xl mx-auto px-4 py-8 text-center text-red-600">
         <p>Error loading topic: {error || "Topic not found."}</p>
         <Link
-          href="/topics" // Link back to the main topics page
-          className="mt-4 inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-800" // Keep original color for link
+          href="/topics"
+          className="mt-4 inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-800"
         >
           <ArrowLeft className="mr-1 h-4 w-4" />
           Back to Topics
@@ -83,11 +82,11 @@ export default function QuantumPhysicsPage() {
     );
   }
 
-  // --- Success State ---
+
   return (
     <div className="container max-w-4xl mx-auto px-4 py-8">
       <Link
-        href="/topics" // Adjusted link back to topics overview
+        href="/topics"
         className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-800 mb-6"
       >
         <ArrowLeft className="mr-1 h-4 w-4" />
@@ -100,21 +99,18 @@ export default function QuantumPhysicsPage() {
         transition={{ duration: 0.5 }}
         className="mb-8"
       >
-        {/* Use dynamic data */}
         <h1 className="text-3xl font-bold mb-4">{topicData.name}</h1>
         <p className="text-lg text-muted-foreground">
           {topicData.description}
         </p>
       </motion.div>
 
-      {/* Keep the rest of the content (animation, key concepts) */}
       <motion.div variants={container} initial="hidden" animate={isLoaded ? "show" : "hidden"} className="grid gap-8">
         <motion.div variants={item}>
           <Card className="overflow-hidden border-0 shadow-sm bg-gradient-to-br from-purple-50 to-white">
-            <CardContent className="p-6 flex flex-col items-center"> {/* Center content */}
+            <CardContent className="p-6 flex flex-col items-center">
               <h2 className="text-xl font-semibold mb-4">Simulation: Quantum Tunneling</h2>
-              {/* Use the new tunneling animation */}
-              <div className="w-full my-4"> {/* Use full width */}
+              <div className="w-full my-4">
                 <QuantumTunnelingAnimation />
               </div>
               <p className="text-sm text-muted-foreground mt-2 text-center">
