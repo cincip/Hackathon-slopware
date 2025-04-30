@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "../../../lib/supabase/client"; // Import Supabase client creator
+import topics from '../../../lib/topic-data.json'; // Import local topic data
+import { CollisionAnimation } from "@/components/svg-animations/collision"; // Import the new collision animation
 
 // Define type for topic data
 type TopicData = {
@@ -15,119 +16,32 @@ type TopicData = {
 
 
 export default function ClassicalMechanicsPage() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false); // Keep for animation logic if needed
+  // const canvasRef = useRef<HTMLCanvasElement | null>(null); // Removed canvas ref
+  const [isLoaded, setIsLoaded] = useState(false);
   const [topicData, setTopicData] = useState<TopicData>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient(); // Initialize Supabase client
+  // const supabase = createClient(); // Removed Supabase client initialization
   const topicSlug = 'classical-mechanics'; // Define the slug
 
   useEffect(() => {
-    const fetchTopicData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const { data, error: dbError } = await supabase
-          .from('topics')
-          .select('name, description')
-          .eq('slug', topicSlug)
-          .single();
+    // Load data from imported JSON
+    setLoading(true);
+    setError(null);
+    const foundTopic = topics.find(topic => topic.slug === topicSlug);
 
-        if (dbError) {
-          // Handle case where topic might not be found gracefully if needed
-          if (dbError.code === 'PGRST116') { // code for no rows found
-             setError(`Topic with slug '${topicSlug}' not found.`);
-             setTopicData(null); // Ensure data is null if not found
-          } else {
-            throw dbError;
-          }
-        } else if (data) {
-          setTopicData(data);
-        } else {
-           // This case might be redundant if PGRST116 is handled, but good for safety
-           setError(`Topic with slug '${topicSlug}' not found.`);
-           setTopicData(null);
-        }
-      } catch (err: any) {
-        console.error("Error fetching topic data:", err);
-        setError(err.message || "Failed to fetch topic data.");
-        setTopicData(null); // Ensure data is null on error
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTopicData();
-    setIsLoaded(true); // Keep or adjust based on animation needs
-
-    // --- Existing Animation Logic ---
-    const canvas = canvasRef.current;
-    let animationFrameId: number | null = null; // Declare here to be accessible in cleanup
-
-    if (canvas) {
-      const ctx = canvas.getContext("2d");
-      let ballX = 50;
-      let ballY = 150;
-
-      const drawInclinedPlane = () => {
-        if (!ctx) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Draw inclined plane
-        ctx.beginPath();
-        ctx.moveTo(30, 200);
-        ctx.lineTo(300, 250);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "#0f172a"; // Use theme colors if available
-        ctx.stroke();
-
-        // Draw ball
-        ctx.beginPath();
-        ctx.arc(ballX, ballY, 15, 0, Math.PI * 2);
-        ctx.fillStyle = "#3b82f6"; // Use theme colors if available
-        ctx.fill();
-
-        // Draw force vector
-        ctx.beginPath();
-        ctx.moveTo(ballX, ballY);
-        ctx.lineTo(ballX + 20, ballY + 15);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "#ef4444"; // Use theme colors if available
-        ctx.stroke();
-
-        // Draw arrowhead
-        ctx.beginPath();
-        ctx.moveTo(ballX + 20, ballY + 15);
-        ctx.lineTo(ballX + 15, ballY + 5);
-        ctx.lineTo(ballX + 25, ballY + 10);
-        ctx.lineTo(ballX + 20, ballY + 15);
-        ctx.fillStyle = "#ef4444"; // Use theme colors if available
-        ctx.fill();
-
-        // Update ball position
-        if (ballX < 270) {
-          ballX += 0.5;
-          ballY += 0.25;
-        } else {
-          // Reset animation
-          ballX = 50;
-          ballY = 150;
-        }
-
-        animationFrameId = window.requestAnimationFrame(drawInclinedPlane);
-      };
-
-      drawInclinedPlane(); // Start animation
+    if (foundTopic) {
+      setTopicData(foundTopic);
+    } else {
+      setError(`Topic with slug '${topicSlug}' not found in local data.`);
+      setTopicData(null);
     }
-    // --- End of Animation Logic ---
+    setLoading(false);
+    setIsLoaded(true);
 
-    // Cleanup function
-    return () => {
-      if (animationFrameId !== null) {
-        window.cancelAnimationFrame(animationFrameId);
-      }
-    };
+    // Removed canvas animation logic
+    // Cleanup function is no longer needed for canvas
+    return () => {};
   }, [topicSlug]); // Add dependencies (supabase client is stable)
 
   const container = {
@@ -218,14 +132,14 @@ export default function ClassicalMechanicsPage() {
         {/* Simulation Card */}
         <motion.div variants={item}>
           <Card className="overflow-hidden border-0 shadow-sm bg-gradient-to-br from-blue-50 to-white">
-            <CardContent className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Simulation: Ball on an Inclined Plane</h2>
-              <div className="bg-white rounded-lg p-4 shadow-inner">
-                {/* Canvas needs the ref */}
-                <canvas ref={canvasRef} width={350} height={300} className="mx-auto"></canvas>
+            <CardContent className="p-6 flex flex-col items-center"> {/* Center content */}
+              <h2 className="text-xl font-semibold mb-4">Simulation: Elastic Collision</h2>
+              {/* Use the new collision animation */}
+              <div className="w-full my-4"> {/* Use full width */}
+                <CollisionAnimation />
               </div>
               <p className="text-sm text-muted-foreground mt-2 text-center">
-                A ball rolling down an inclined plane with force vector shown in red
+                Elastic collision between two balls demonstrating conservation of momentum.
               </p>
             </CardContent>
           </Card>

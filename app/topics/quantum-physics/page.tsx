@@ -5,118 +5,43 @@ import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { QuantumTunnelingAnimation } from "@/components/svg-animations/quantum-tunneling"; // Import the new tunneling animation
+
+import topics from '../../../lib/topic-data.json'; // Import local topic data
+
+// Define type for topic data (can be moved to a shared types file later)
+type TopicData = {
+  slug: string;
+  name: string;
+  description: string;
+} | null;
 
 export default function QuantumPhysicsPage() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [isLoaded, setIsLoaded] = useState(false)
+  // const canvasRef = useRef<HTMLCanvasElement | null>(null); // Removed canvas ref
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [topicData, setTopicData] = useState<TopicData>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const topicSlug = 'quantum-physics'; // Define the slug for this page
 
   useEffect(() => {
-    setIsLoaded(true)
+    // Load data from imported JSON
+    setLoading(true);
+    setError(null);
+    const foundTopic = topics.find(topic => topic.slug === topicSlug);
 
-    // Double-slit interference pattern animation
-    const canvas = canvasRef.current
-    if (canvas) {
-      const ctx = canvas.getContext("2d")
-      if (!ctx) {
-        console.error("Failed to get 2D context")
-        return // Exit if context is not available
-      }
-      let time = 0
-      let animationFrameId: number | undefined
-
-      const drawInterference = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
-        time += 0.03
-
-        // Draw source
-        ctx.beginPath()
-        ctx.arc(50, 150, 8, 0, Math.PI * 2)
-        ctx.fillStyle = "#8b5cf6"
-        ctx.fill()
-
-        // Draw barrier with two slits
-        ctx.fillStyle = "#1e293b"
-        ctx.fillRect(120, 80, 10, 50)
-        ctx.fillRect(120, 150, 10, 70)
-        ctx.fillRect(120, 240, 10, 50)
-
-        // Draw waves emanating from slits
-        const drawWave = (centerY: number, phase: number) => {
-          for (let angle = -Math.PI / 2; angle <= Math.PI / 2; angle += 0.1) {
-            const length = 200
-            const startX = 130
-            const startY = centerY
-
-            for (let i = 0; i < length; i += 2) {
-              const x = startX + i * Math.cos(angle)
-              const y = startY + i * Math.sin(angle)
-
-              // Distance from source
-              const distance = i
-
-              // Wave amplitude decreases with distance
-              const amplitude = 3 * (1 - distance / length)
-
-              // Wave frequency
-              const frequency = 0.2
-
-              // Calculate wave displacement
-              const displacement = amplitude * Math.sin(frequency * distance - time + phase)
-
-              // Draw wave particle
-              const alpha = 0.6 * (1 - distance / length)
-              ctx.beginPath()
-              ctx.arc(x, y + displacement, 1.5, 0, Math.PI * 2)
-              ctx.fillStyle = `rgba(139, 92, 246, ${alpha})`
-              ctx.fill()
-            }
-          }
-        }
-
-        // Draw waves from both slits with different phases
-        drawWave(130, 0)
-        drawWave(220, Math.PI)
-
-        // Draw interference pattern on the right side
-        const patternWidth = 80
-        const patternHeight = 200
-        const patternX = 250
-        const patternY = 100
-
-        for (let y = 0; y < patternHeight; y++) {
-          // Calculate intensity based on position (simplified double-slit formula)
-          const y1 = y + patternY - 130
-          const y2 = y + patternY - 220
-          const d1 = Math.sqrt(Math.pow(patternX - 130, 2) + Math.pow(y1, 2))
-          const d2 = Math.sqrt(Math.pow(patternX - 130, 2) + Math.pow(y2, 2))
-
-          // Phase difference
-          const phaseDiff = (2 * Math.PI * (d2 - d1)) / 20
-
-          // Intensity calculation (simplified)
-          const intensity = Math.pow(Math.cos(phaseDiff / 2 + time / 5), 2)
-
-          // Draw intensity line
-          ctx.beginPath()
-          ctx.moveTo(patternX, patternY + y)
-          ctx.lineTo(patternX + intensity * patternWidth, patternY + y)
-          ctx.strokeStyle = `rgba(139, 92, 246, ${intensity * 0.8})`
-          ctx.lineWidth = 2
-          ctx.stroke()
-        }
-
-        animationFrameId = window.requestAnimationFrame(drawInterference)
-      }
-
-      drawInterference()
-
-      return () => {
-        if (typeof animationFrameId === "number") {
-          window.cancelAnimationFrame(animationFrameId)
-        }
-      }
+    if (foundTopic) {
+      setTopicData(foundTopic);
+    } else {
+      setError(`Topic with slug '${topicSlug}' not found in local data.`);
+      setTopicData(null);
     }
-  }, [])
+    setLoading(false);
+    setIsLoaded(true);
+
+    // Removed canvas animation logic
+    return () => {}; // Simple cleanup
+  }, []); // Keep empty dependency array for animation setup on mount
 
   const container = {
     hidden: { opacity: 0 },
@@ -133,14 +58,40 @@ export default function QuantumPhysicsPage() {
     show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   }
 
+  // --- Loading State ---
+  if (loading) {
+    return (
+      <div className="container max-w-4xl mx-auto px-4 py-8 text-center">
+        <p>Loading topic details...</p>
+      </div>
+    );
+  }
+
+  // --- Error State ---
+  if (error || !topicData) { // Handle both fetch error and topic not found
+    return (
+      <div className="container max-w-4xl mx-auto px-4 py-8 text-center text-red-600"> {/* Use red for error */}
+        <p>Error loading topic: {error || "Topic not found."}</p>
+        <Link
+          href="/topics" // Link back to the main topics page
+          className="mt-4 inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-800" // Keep original color for link
+        >
+          <ArrowLeft className="mr-1 h-4 w-4" />
+          Back to Topics
+        </Link>
+      </div>
+    );
+  }
+
+  // --- Success State ---
   return (
     <div className="container max-w-4xl mx-auto px-4 py-8">
       <Link
-        href="/lessons"
+        href="/topics" // Adjusted link back to topics overview
         className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-800 mb-6"
       >
         <ArrowLeft className="mr-1 h-4 w-4" />
-        Back to Lessons
+        Back to Topics
       </Link>
 
       <motion.div
@@ -149,24 +100,25 @@ export default function QuantumPhysicsPage() {
         transition={{ duration: 0.5 }}
         className="mb-8"
       >
-        <h1 className="text-3xl font-bold mb-4">Quantum Physics</h1>
+        {/* Use dynamic data */}
+        <h1 className="text-3xl font-bold mb-4">{topicData.name}</h1>
         <p className="text-lg text-muted-foreground">
-          Quantum physics is a fundamental theory in physics that describes nature at the smallest scales of energy
-          levels of atoms and subatomic particles. It explains phenomena that classical physics cannot, such as
-          wave-particle duality and quantum entanglement.
+          {topicData.description}
         </p>
       </motion.div>
 
+      {/* Keep the rest of the content (animation, key concepts) */}
       <motion.div variants={container} initial="hidden" animate={isLoaded ? "show" : "hidden"} className="grid gap-8">
         <motion.div variants={item}>
           <Card className="overflow-hidden border-0 shadow-sm bg-gradient-to-br from-purple-50 to-white">
-            <CardContent className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Simulation: Double-Slit Interference Pattern</h2>
-              <div className="bg-white rounded-lg p-4 shadow-inner">
-                <canvas ref={canvasRef} width={350} height={300} className="mx-auto"></canvas>
+            <CardContent className="p-6 flex flex-col items-center"> {/* Center content */}
+              <h2 className="text-xl font-semibold mb-4">Simulation: Quantum Tunneling</h2>
+              {/* Use the new tunneling animation */}
+              <div className="w-full my-4"> {/* Use full width */}
+                <QuantumTunnelingAnimation />
               </div>
               <p className="text-sm text-muted-foreground mt-2 text-center">
-                A particle behaving like a wave, creating an interference pattern after passing through two slits
+                Particle wave function tunneling through a potential barrier.
               </p>
             </CardContent>
           </Card>

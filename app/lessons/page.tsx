@@ -145,17 +145,17 @@ export default function LessonsPage() {
             <motion.div 
               key={topic.id} 
               variants={item} 
-              whileHover={{ scale: 1.03 }} 
+              whileHover={{ y: -4 }} // Changed from scale to translateY
               transition={{ duration: 0.3 }}
               className="transform-gpu will-change-transform" // Add this class
             >
               <Link href={`/topics/${topic.id}`} className="block h-full group">
                 <Card
-                  className={`h-full border border-transparent ${getBorderColor(topic.color)} 
+                  className={`h-full border border-transparent ${getBorderColor(topic.color)}
                     shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden
                     transform-style-preserve-3d`} // Add this class
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${getGradient(topic.color)} 
+                  <div className={`absolute inset-0 bg-gradient-to-br ${getGradient(topic.color)}
                     opacity-60 will-change-opacity`} // Add will-change-opacity
                   ></div>
                   <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 bg-white/20 rounded-full blur-3xl"></div>

@@ -5,30 +5,56 @@ import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { RefractionAnimation } from "@/components/svg-animations/refraction"; // Import the new refraction animation
+
+import topics from '../../../lib/topic-data.json'; // Import local topic data
+
+// Define type for topic data (can be moved to a shared types file later)
+type TopicData = {
+  slug: string;
+  name: string;
+  description: string;
+} | null;
 
 export default function OpticsPage() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [isLoaded, setIsLoaded] = useState(false)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [topicData, setTopicData] = useState<TopicData>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const topicSlug = 'optics'; // Define the slug for this page
 
   useEffect(() => {
-    setIsLoaded(true)
+    // Load data from imported JSON
+    setLoading(true);
+    setError(null);
+    const foundTopic = topics.find(topic => topic.slug === topicSlug);
 
-    // Light ray tracing through a converging lens
-    const canvas = canvasRef.current
+    if (foundTopic) {
+      setTopicData(foundTopic);
+    } else {
+      setError(`Topic with slug '${topicSlug}' not found in local data.`);
+      setTopicData(null);
+    }
+    setLoading(false);
+    setIsLoaded(true); // Keep for animation logic if needed
+
+    // --- Existing Animation Logic ---
+    let animationFrameId: number | undefined; // Declare outside if block
+    const canvas = canvasRef.current;
     if (canvas) {
       // Explicitly type canvas element after null check
-      const canvasElement = canvas as HTMLCanvasElement
-      const ctx = canvasElement.getContext("2d")
+      const canvasElement = canvas as HTMLCanvasElement;
+      const ctx = canvasElement.getContext("2d");
 
       // Check if context was successfully obtained
       if (!ctx) {
-        console.error("Failed to get 2D context from canvas")
-        return // Exit if context is not available
+        console.error("Failed to get 2D context from canvas");
+        return; // Exit if context is not available
       }
 
-      let time = 0
-      // Add type annotation for animationFrameId
-      let animationFrameId: number | undefined
+      let time = 0;
+      // animationFrameId is now declared outside
 
       const drawLensRayTracing = () => {
         // Use the correctly typed canvasElement
@@ -39,7 +65,7 @@ export default function OpticsPage() {
         const lensX = 175
         const lensHeight = 120
         const lensWidth = 20
-        const lensY = 150 - lensHeight / 2
+        const lensY = 150 - lensHeight / 2 // This variable seems unused, but kept for consistency
         const focalLength = 80
 
         // Draw optical axis (horizontal line)
@@ -189,14 +215,23 @@ export default function OpticsPage() {
 
       drawLensRayTracing()
 
+      // Inner return for the if(canvas) block, handles cleanup if animation started
       return () => {
-        // Check if animationFrameId has a value before cancelling
-        if (animationFrameId) {
-          window.cancelAnimationFrame(animationFrameId)
+        if (typeof animationFrameId === "number") {
+           window.cancelAnimationFrame(animationFrameId);
         }
-      }
+      };
     }
-  }, [])
+    // --- End of Animation Logic ---
+
+    // Main useEffect cleanup function (handles case where canvas might be null initially)
+    // This correctly references the animationFrameId declared outside the if block
+    return () => {
+      if (typeof animationFrameId === "number") {
+        window.cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, []); // Keep empty dependency array for animation setup on mount
 
   const container = {
     hidden: { opacity: 0 },
@@ -213,14 +248,40 @@ export default function OpticsPage() {
     show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   }
 
+  // --- Loading State ---
+  if (loading) {
+    return (
+      <div className="container max-w-4xl mx-auto px-4 py-8 text-center">
+        <p>Loading topic details...</p>
+      </div>
+    );
+  }
+
+  // --- Error State ---
+  if (error || !topicData) { // Handle both fetch error and topic not found
+    return (
+      <div className="container max-w-4xl mx-auto px-4 py-8 text-center text-red-600"> {/* Use red for error */}
+        <p>Error loading topic: {error || "Topic not found."}</p>
+        <Link
+          href="/topics" // Link back to the main topics page
+          className="mt-4 inline-flex items-center text-sm font-medium text-green-600 hover:text-green-800" // Keep original color for link
+        >
+          <ArrowLeft className="mr-1 h-4 w-4" />
+          Back to Topics
+        </Link>
+      </div>
+    );
+  }
+
+  // --- Success State ---
   return (
     <div className="container max-w-4xl mx-auto px-4 py-8">
       <Link
-        href="/lessons"
+        href="/topics" // Adjusted link back to topics overview
         className="inline-flex items-center text-sm font-medium text-green-600 hover:text-green-800 mb-6"
       >
         <ArrowLeft className="mr-1 h-4 w-4" />
-        Back to Lessons
+        Back to Topics
       </Link>
 
       <motion.div
@@ -229,24 +290,25 @@ export default function OpticsPage() {
         transition={{ duration: 0.5 }}
         className="mb-8"
       >
-        <h1 className="text-3xl font-bold mb-4">Optics</h1>
+        {/* Use dynamic data */}
+        <h1 className="text-3xl font-bold mb-4">{topicData.name}</h1>
         <p className="text-lg text-muted-foreground">
-          Optics is the branch of physics that studies the behavior and properties of light, including its interactions
-          with matter and the construction of instruments that use or detect it. It includes the study of sight, the
-          sense of seeing.
+          {topicData.description}
         </p>
       </motion.div>
 
+      {/* Keep the rest of the content (animation, key concepts) */}
       <motion.div variants={container} initial="hidden" animate={isLoaded ? "show" : "hidden"} className="grid gap-8">
         <motion.div variants={item}>
           <Card className="overflow-hidden border-0 shadow-sm bg-gradient-to-br from-green-50 to-white">
-            <CardContent className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Simulation: Ray Tracing Through a Converging Lens</h2>
-              <div className="bg-white rounded-lg p-4 shadow-inner">
-                <canvas ref={canvasRef} width={350} height={300} className="mx-auto"></canvas>
+            <CardContent className="p-6 flex flex-col items-center"> {/* Center content */}
+              <h2 className="text-xl font-semibold mb-4">Simulation: Lens Refraction</h2>
+              {/* Use the new refraction animation */}
+              <div className="w-full my-4"> {/* Use full width */}
+                <RefractionAnimation />
               </div>
               <p className="text-sm text-muted-foreground mt-2 text-center">
-                Light rays from an object passing through a converging lens, forming a real image
+                Parallel light rays converging after passing through a lens.
               </p>
             </CardContent>
           </Card>
