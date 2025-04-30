@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 export default function ClassicalMechanicsPage() {
-  const canvasRef = useRef(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
@@ -19,9 +19,10 @@ export default function ClassicalMechanicsPage() {
       const ctx = canvas.getContext("2d")
       let ballX = 50
       let ballY = 150
-      let animationFrameId
+      let animationFrameId: number | null = null
 
       const drawInclinedPlane = () => {
+        if (!ctx) return
         ctx.clearRect(0, 0, canvas.width, canvas.height)
 
         // Draw inclined plane
@@ -71,7 +72,9 @@ export default function ClassicalMechanicsPage() {
       drawInclinedPlane()
 
       return () => {
-        window.cancelAnimationFrame(animationFrameId)
+        if (animationFrameId !== null) {
+          window.cancelAnimationFrame(animationFrameId)
+        }
       }
     }
   }, [])

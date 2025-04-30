@@ -33,48 +33,50 @@ export default function FlashcardsPage() {
       id: "classical-mechanics",
       title: "Classical Mechanics",
       description: "Review concepts of motion, forces, and energy",
-      color: "blue",
+      color: "blue" as ColorKey,
       count: 5,
     },
     {
       id: "thermodynamics",
       title: "Thermodynamics",
       description: "Master heat, energy transfer, and entropy",
-      color: "orange",
+      color: "orange" as ColorKey,
       count: 5,
     },
     {
       id: "quantum-physics",
       title: "Quantum Physics",
       description: "Explore the subatomic world and wave-particle duality",
-      color: "purple",
+      color: "purple" as ColorKey,
       count: 5,
     },
     {
       id: "optics",
       title: "Optics",
       description: "Study light behavior and optical phenomena",
-      color: "green",
+      color: "green" as ColorKey,
       count: 5,
     },
     {
       id: "electromagnetism",
       title: "Electromagnetism",
       description: "Learn about electric and magnetic fields",
-      color: "red",
+      color: "red" as ColorKey,
       count: 5,
     },
     {
       id: "special-relativity",
       title: "Special Relativity",
       description: "Understand space-time and relativistic effects",
-      color: "yellow",
+      color: "yellow" as ColorKey,
       count: 5,
     },
   ]
 
-  const getGradient = (color) => {
-    const gradients = {
+  type ColorKey = "blue" | "orange" | "purple" | "green" | "red" | "yellow"
+
+  const getGradient = (color: ColorKey) => {
+    const gradients: Record<ColorKey, string> = {
       blue: "from-blue-50 to-white",
       orange: "from-orange-50 to-white",
       purple: "from-purple-50 to-white",
@@ -85,8 +87,8 @@ export default function FlashcardsPage() {
     return gradients[color] || "from-gray-50 to-white"
   }
 
-  const getIconColor = (color) => {
-    const colors = {
+  const getIconColor = (color: ColorKey) => {
+    const colors: Record<ColorKey, string> = {
       blue: "text-blue-500",
       orange: "text-orange-500",
       purple: "text-purple-500",
@@ -97,8 +99,8 @@ export default function FlashcardsPage() {
     return colors[color] || "text-gray-500"
   }
 
-  const getTextColor = (color) => {
-    const colors = {
+  const getTextColor = (color: ColorKey) => {
+    const colors: Record<ColorKey, string> = {
       blue: "text-blue-600 hover:text-blue-800",
       orange: "text-orange-600 hover:text-orange-800",
       purple: "text-purple-600 hover:text-purple-800",

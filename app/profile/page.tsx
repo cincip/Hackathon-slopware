@@ -225,7 +225,7 @@ export default function ProfilePage() {
               <div className="flex-grow">
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={weeklyChartData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
-                    <CartesianGrid strokeDashArray="3 3" vertical={false} stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                     <XAxis dataKey="name" axisLine={false} tickLine={false} />
                     <YAxis
                       axisLine={false}
@@ -293,7 +293,6 @@ export default function ProfilePage() {
                    }
                  }}
                  style={{
-                   blockRadius: 3,
                  }}
                  hideColorLegend={false}
                  hideMonthLabels={false}

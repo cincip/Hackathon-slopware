@@ -62,8 +62,6 @@ export function OpticsAnimation() {
               x2="32"
               y2="36"
               stroke={highlightBeam === "incoming" ? "#FBBF24" : "#FBBF24"}
-              y2="36"
-              stroke={highlightBeam === "incoming" ? "#FBBF24" : "#FBBF24"}
               strokeWidth="2"
               className="cursor-help"
               onMouseEnter={() => setHighlightBeam("incoming")}

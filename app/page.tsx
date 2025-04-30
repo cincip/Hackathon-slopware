@@ -9,7 +9,7 @@ import Link from "next/link"
 export default function HomePage() {
   const [userName, setUserName] = useState("Alex")
   const [isLoaded, setIsLoaded] = useState(false)
-  const canvasRef = useRef(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   useEffect(() => {
     setIsLoaded(true)
@@ -18,7 +18,16 @@ export default function HomePage() {
     const canvas = canvasRef.current
     if (canvas) {
       const ctx = canvas.getContext("2d")
-      const particles = []
+      if (!ctx) return
+      const particles: {
+        x: number
+        y: number
+        radius: number
+        color: string
+        speedX: number
+        speedY: number
+        type: number
+      }[] = []
       const particleCount = 50
 
       // Create particles
@@ -39,7 +48,9 @@ export default function HomePage() {
         return colors[Math.floor(Math.random() * colors.length)]
       }
 
+
       function drawParticles() {
+        if (!ctx || !canvas) return
         ctx.clearRect(0, 0, canvas.width, canvas.height)
 
         // Draw connections between nearby particles

@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 export default function QuantumPhysicsPage() {
-  const canvasRef = useRef(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
@@ -17,8 +17,12 @@ export default function QuantumPhysicsPage() {
     const canvas = canvasRef.current
     if (canvas) {
       const ctx = canvas.getContext("2d")
+      if (!ctx) {
+        console.error("Failed to get 2D context")
+        return // Exit if context is not available
+      }
       let time = 0
-      let animationFrameId
+      let animationFrameId: number | undefined
 
       const drawInterference = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -37,7 +41,7 @@ export default function QuantumPhysicsPage() {
         ctx.fillRect(120, 240, 10, 50)
 
         // Draw waves emanating from slits
-        const drawWave = (centerY, phase) => {
+        const drawWave = (centerY: number, phase: number) => {
           for (let angle = -Math.PI / 2; angle <= Math.PI / 2; angle += 0.1) {
             const length = 200
             const startX = 130
@@ -107,7 +111,9 @@ export default function QuantumPhysicsPage() {
       drawInterference()
 
       return () => {
-        window.cancelAnimationFrame(animationFrameId)
+        if (typeof animationFrameId === "number") {
+          window.cancelAnimationFrame(animationFrameId)
+        }
       }
     }
   }, [])

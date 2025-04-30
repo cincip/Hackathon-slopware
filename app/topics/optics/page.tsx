@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 export default function OpticsPage() {
-  const canvasRef = useRef(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
@@ -16,12 +16,23 @@ export default function OpticsPage() {
     // Light ray tracing through a converging lens
     const canvas = canvasRef.current
     if (canvas) {
-      const ctx = canvas.getContext("2d")
+      // Explicitly type canvas element after null check
+      const canvasElement = canvas as HTMLCanvasElement
+      const ctx = canvasElement.getContext("2d")
+
+      // Check if context was successfully obtained
+      if (!ctx) {
+        console.error("Failed to get 2D context from canvas")
+        return // Exit if context is not available
+      }
+
       let time = 0
-      let animationFrameId
+      // Add type annotation for animationFrameId
+      let animationFrameId: number | undefined
 
       const drawLensRayTracing = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        // Use the correctly typed canvasElement
+        ctx.clearRect(0, 0, canvasElement.width, canvasElement.height)
         time += 0.01
 
         // Define lens parameters
@@ -179,7 +190,10 @@ export default function OpticsPage() {
       drawLensRayTracing()
 
       return () => {
-        window.cancelAnimationFrame(animationFrameId)
+        // Check if animationFrameId has a value before cancelling
+        if (animationFrameId) {
+          window.cancelAnimationFrame(animationFrameId)
+        }
       }
     }
   }, [])

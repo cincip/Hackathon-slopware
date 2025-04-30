@@ -30,7 +30,13 @@ export default function LessonsPage() {
     show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   }
 
-  const topics = [
+  const topics: {
+    id: string
+    title: string
+    description: string
+    color: ColorKey
+    icon: React.ReactNode
+  }[] = [
     {
       id: "classical-mechanics",
       title: "Classical Mechanics",
@@ -75,8 +81,9 @@ export default function LessonsPage() {
     },
   ]
 
-  const getGradient = (color) => {
-    const gradients = {
+  type ColorKey = "blue" | "orange" | "purple" | "green" | "red" | "yellow"
+  const getGradient = (color: ColorKey) => {
+    const gradients: Record<ColorKey, string> = {
       blue: "from-blue-100 to-blue-50/30",
       orange: "from-orange-100 to-orange-50/30",
       purple: "from-purple-100 to-purple-50/30",
@@ -87,8 +94,8 @@ export default function LessonsPage() {
     return gradients[color] || "from-gray-100 to-gray-50/30"
   }
 
-  const getTextColor = (color) => {
-    const colors = {
+  const getTextColor = (color: ColorKey) => {
+    const colors: Record<ColorKey, string> = {
       blue: "text-blue-600",
       orange: "text-orange-600",
       purple: "text-purple-600",
@@ -99,8 +106,8 @@ export default function LessonsPage() {
     return colors[color] || "text-gray-600"
   }
 
-  const getBorderColor = (color) => {
-    const colors = {
+  const getBorderColor = (color: ColorKey) => {
+    const colors: Record<ColorKey, string> = {
       blue: "group-hover:border-blue-300",
       orange: "group-hover:border-orange-300",
       purple: "group-hover:border-purple-300",
