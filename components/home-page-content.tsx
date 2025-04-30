@@ -1,7 +1,18 @@
 "use client" // This component receives props from a Server Component but can use client features if needed
 
 import Link from "next/link"
-import { ArrowRight, BookOpen, FlaskConical, BrainCircuit } from "lucide-react"
+import { 
+  ArrowRight, 
+  BookOpen, 
+  FlaskConical, 
+  BrainCircuit, 
+  Atom, 
+  Zap, 
+  Radar, 
+  Lightbulb, 
+  Waves, 
+  Rocket 
+} from "lucide-react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 // Define the type for a topic (can be shared or redefined)
@@ -20,6 +31,19 @@ interface HomePageContentProps {
 
 export function HomePageContent({ userName, topics, fetchError }: HomePageContentProps) {
   // Note: Removed framer-motion for simplicity, can be added back here if needed
+
+  // Add this helper function to get icon and color for each topic
+  const getTopicStyle = (index: number) => {
+    const styles = [
+      { Icon: Atom, color: 'blue', gradient: 'from-blue-50' },
+      { Icon: Zap, color: 'yellow', gradient: 'from-yellow-50' },
+      { Icon: Radar, color: 'green', gradient: 'from-green-50' },
+      { Icon: Lightbulb, color: 'orange', gradient: 'from-orange-50' },
+      { Icon: Waves, color: 'purple', gradient: 'from-purple-50' },
+      { Icon: Rocket, color: 'red', gradient: 'from-red-50' },
+    ];
+    return styles[index % styles.length];
+  };
 
   return (
     <>
@@ -44,35 +68,25 @@ export function HomePageContent({ userName, topics, fetchError }: HomePageConten
              <span>No topics found.</span>
            </div>
         )}
-        {!fetchError && topics.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {topics.map((topic) => (
-              <div key={topic.id}>
-                <Card className="h-full border-0 shadow-sm hover:shadow-md transition-shadow flex flex-col">
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      <Link href={`/topics/${topic.slug}`} className="hover:text-blue-600 transition-colors">
-                        {topic.name}
-                      </Link>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <CardDescription>{topic.description}</CardDescription>
-                  </CardContent>
-                  <CardFooter>
-                    <Link
-                      href={`/topics/${topic.slug}`}
-                      className="text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center group ml-auto"
-                    >
-                      Explore Topic
-                      <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-                    </Link>
-                  </CardFooter>
-                </Card>
-              </div>
-            ))}
+        {/* Use ternary operator for conditional rendering */}
+        {!fetchError && topics.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {topics.map((topic, index) => {
+              const { Icon, color, gradient } = getTopicStyle(index);
+              return (
+                <Link key={topic.id} href={`/topics/${topic.slug}`}>
+                  <Card className={`h-full border-0 shadow-sm bg-gradient-to-br ${gradient} to-white hover:shadow-md transition-shadow`}>
+                    <CardContent className="flex flex-col items-center justify-center pt-6">
+                      <Icon className={`h-12 w-12 text-${color}-500 mb-4`} />
+                      <h3 className="text-xl font-medium text-center mb-2">{topic.name}</h3>
+                      <p className="text-center text-muted-foreground text-sm">{topic.description}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
-        )}
+        ) : null /* Render nothing when no topics */}
       </div>
 
       {/* Learning Pathways Section */}

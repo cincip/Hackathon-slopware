@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { supabase } from '@/lib/supabaseClient'; // Import Supabase client instance
+import { createClient } from "../../../lib/supabase/client"; // Import Supabase client creator
 
 // Define type for topic data
 type TopicData = {
@@ -20,7 +20,7 @@ export default function ClassicalMechanicsPage() {
   const [topicData, setTopicData] = useState<TopicData>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // const supabase = createClient(); // Remove this line, use the imported instance directly
+  const supabase = createClient(); // Initialize Supabase client
   const topicSlug = 'classical-mechanics'; // Define the slug
 
   useEffect(() => {
@@ -128,7 +128,7 @@ export default function ClassicalMechanicsPage() {
         window.cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [supabase, topicSlug]); // Add dependencies
+  }, [topicSlug]); // Add dependencies (supabase client is stable)
 
   const container = {
     hidden: { opacity: 0 },
